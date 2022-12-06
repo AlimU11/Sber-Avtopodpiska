@@ -1,0 +1,17 @@
+FROM python:3.9.15-alpine3.15
+
+RUN apk update && \
+    apk add --no-cache \
+        bash \
+        libpq && \
+    apk add --update --no-cache --virtual .build-deps \
+        g++ \
+        postgresql-dev \
+        gcc \
+        python3-dev \
+        musl-dev && \
+    pip install --no-cache-dir \
+        pandas \
+        sqlalchemy \
+        psycopg2 && \
+    apk del --no-cache .build-deps

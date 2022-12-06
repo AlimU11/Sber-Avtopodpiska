@@ -1,0 +1,6 @@
+FROM alimu/alpine-pandas-postgres:latest
+
+RUN pip install --no-cache-dir \
+        dash \
+        dash-bootstrap-components \
+        waitress

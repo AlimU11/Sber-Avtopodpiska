@@ -1,0 +1,226 @@
+---
+version: '3'
+
+services:
+
+  # DASHBOARDS PROFILE
+  dev-dashboard:
+    command:
+      - /wait-for-it.sh
+      - db:${POSTGRES_PORT}
+      - -t
+      - '0'
+      - --
+      - waitress-serve
+      - --host=0.0.0.0
+      - --port=${DEV_DASHBOARD_PORT}
+      - wsgi:application
+    container_name: dev-dashboard
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.dev-dashboard.rule=Host(`dev-dashboard.localhost`)
+    environment:
+      DATABASE_URL: "postgresql://\
+        ${POSTGRES_USER}:\
+        ${POSTGRES_PASSWORD}\
+        @db:\
+        ${POSTGRES_PORT}/\
+        ${POSTGRES_DB}"
+    expose:
+      - ${DEV_DASHBOARD_PORT}
+    image: ${MAINTAINER}/dashboard:latest
+    links:
+      - db
+    ports:
+      - ${DEV_DASHBOARD_PORT}:${DEV_DASHBOARD_PORT}
+    profiles:
+      - ${DASHBOARDS_PROFILE}
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh:ro
+      - ./dev/dashboard:/usr/src/app:ro
+    working_dir: /usr/src/app
+
+  # DB PROFILE
+  db:
+    build:
+      args:
+        - POSTGRES_USER=${POSTGRES_USER}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        - POSTGRES_DB=${POSTGRES_DB}
+      context: ./
+      dockerfile: ./Dockerfile.db
+      tags:
+        - ${MAINTAINER}/db
+    container_name: db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    image: ${MAINTAINER}/db
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    profiles:
+      - ${DB_PROFILE}
+    restart: on-failure
+
+  # API PROFILE
+  endpoint:
+    command:
+      - /wait-for-it.sh
+      - db:${POSTGRES_PORT}
+      - -t
+      - '0'
+      - --
+      - uvicorn
+      - api:app
+      - --proxy-headers
+      - --host
+      - 0.0.0.0
+      - --port
+      - ${ENDPOINT_PORT}
+    deploy:
+      mode: replicated
+      replicas: 3
+    environment:
+      DATABASE_URL: "postgresql://\
+        ${POSTGRES_USER}:\
+        ${POSTGRES_PASSWORD}\
+        @db:\
+        ${POSTGRES_PORT}/\
+        ${POSTGRES_DB}"
+    expose:
+      - ${ENDPOINT_PORT}
+    image: alimu/api:latest
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.fastapi.rule=Host(`api.localhost`)
+    links:
+      - db
+      - prometheus
+    profiles:
+      - ${API_PROFILE}
+    restart: on-failure
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh:ro
+      - ./prod/endpoint:/usr/src/app:ro
+    working_dir: /usr/src/app
+
+  traefik:
+    command:
+      - --api=true
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.watch=true
+      - --metrics.prometheus=true
+      - --metrics.prometheus.buckets=0.1,0.3,1.2,5.0
+      - --metrics.prometheus.addServicesLabels=true
+    container_name: traefik
+    image: traefik:v2.6
+    links:
+      - endpoint
+      - prometheus
+    ports:
+      - 80:80
+      - ${TRAEFIK_PORT}:${TRAEFIK_PORT}
+    profiles:
+      - ${API_PROFILE}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  # ML PROFILE
+  dev-train:
+    command:
+      - python
+      - main.py
+    container_name: dev-train
+    environment:
+      DATABASE_URL: "postgresql://\
+        ${POSTGRES_USER}:\
+        ${POSTGRES_PASSWORD}\
+        @db:\
+        ${POSTGRES_PORT}/\
+        ${POSTGRES_DB}"
+    image: alimu/ml:latest
+    links:
+      - db
+    profiles:
+      - ${ML_PROFILE}
+    volumes:
+      - ./dev/train:/usr/src/app:ro
+    working_dir: /usr/src/app
+
+  # MONITORING PROFILE
+  adminer:
+    container_name: adminer
+    depends_on:
+      - db
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.adminer.rule=Host(`adminer.localhost`)
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    image: adminer:latest
+    ports:
+      - ${ADMINER_PORT}:8080
+    profiles:
+      - ${MONITORING_PROFILE}
+    restart: on-failure
+
+  grafana:
+    container_name: grafana
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.grafana.rule=Host(`grafana.localhost`)
+    image: grafana/grafana
+    ports:
+      - ${GRAFANA_PORT}:${GRAFANA_PORT}
+    profiles:
+      - ${MONITORING_PROFILE}
+    volumes:
+      - ./data/grafana-storage:/var/lib/grafana
+
+  postgres-exporter:
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://\
+        ${POSTGRES_USER}:\
+        ${POSTGRES_PASSWORD}\
+        @db:\
+        ${POSTGRES_PORT}/\
+        ${POSTGRES_DB}\
+        ?sslmode=disable"
+    image: prometheuscommunity/postgres-exporter
+    links:
+      - db
+      - prometheus
+    ports:
+      - ${POSTGRES_EXPORTER_PORT}:${POSTGRES_EXPORTER_PORT}
+    profiles:
+      - ${MONITORING_PROFILE}
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    labels:
+      - traefik.backend=prometheus
+      - traefik.frontend.rule=Host:prometheus.localhost
+      - traefik.port=9090
+    ports:
+      - ${PROMETHEUS_PORT}:${PROMETHEUS_PORT}
+    profiles:
+      - ${MONITORING_PROFILE}
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+
+volumes:
+  grafana-storage:
+    driver: local
+    driver_opts:
+      device: /data/grafana-storage
+      o: bind
+      type: none
