@@ -53,6 +53,10 @@ services:
       tags:
         - ${MAINTAINER}/db
     container_name: db
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.db.rule=Host(`db.localhost`)
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -103,7 +107,9 @@ services:
     restart: on-failure
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh:ro
-      - ./prod/endpoint:/usr/src/app:ro
+      - ./prod/endpoint:/usr/src/app
+      - ./dev/train/train.py:/usr/src/app/train.py:ro
+      - ./data/ru_cities.csv:/usr/src/app/ru_cities.csv:ro
     working_dir: /usr/src/app
 
   traefik:
@@ -137,19 +143,26 @@ services:
       - main.py
     container_name: dev-train
     environment:
-      DATABASE_URL: "postgresql://\
-        ${POSTGRES_USER}:\
-        ${POSTGRES_PASSWORD}\
-        @db:\
-        ${POSTGRES_PORT}/\
-        ${POSTGRES_DB}"
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - RAW_HITS_TABLE=${RAW_HITS_TABLE}
+      - RAW_SESSIONS_TABLE=${RAW_SESSIONS_TABLE}
+      - MODELS_TABLE=${MODELS_TABLE}
+      - METRICS_TABLE=${METRICS_TABLE}
+      - PREDS_TABLE=${PREDS_TABLE}
+      - CHUNKSIZE=${CHUNKSIZE}
+      - QUERY_PATH=${QUERY_PATH}
     image: alimu/ml:latest
     links:
       - db
     profiles:
       - ${ML_PROFILE}
     volumes:
-      - ./dev/train:/usr/src/app:ro
+      - ./dev/train:/usr/src/app
+      - ./data/ru_cities.csv:/usr/src/app/ru_cities.csv:ro
     working_dir: /usr/src/app
 
   # MONITORING PROFILE

@@ -1,14 +1,20 @@
 from db import write
 from metrics import calculate_metrics
-from train import get_pipeline
+from train import train
 
 
 def main():
-    pipeline = get_pipeline()
-    metrics = calculate_metrics(pipeline)
+    print('train')
+    pipeline, feature_importance, corr, y_test, pred_proba = train()
+
+    print('calculate_metrics')
+    metrics = calculate_metrics(y_test, pred_proba)
+
+    print('write')
     write(
         pipeline=pipeline,
-        metrics=metrics,
+        metrics=metrics + [feature_importance, corr],
+        train=(y_test, pred_proba[:, 1]),
     )
 
 

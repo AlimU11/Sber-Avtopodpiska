@@ -1,28 +1,22 @@
-FROM python:3.9.15-slim as base
-
-RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        libpq-dev \
-        gcc
-
-RUN python -m venv /opt/venv
+FROM alimu/base-python:latest as base
 
 ENV PATH="/opt/venv/bin:${PATH}"
 
 RUN pip install --no-cache-dir --upgrade \
-        pip \
-        numpy \
-        pandas \
-        psycopg2 \
-        sqlalchemy \
-        scikit-learn \
+        category-encoders \
+        feature-engine \
+        dill \
         xgboost \
         lightgbm \
-        catboost \
-        optuna
+        catboost
 
 FROM python:3.9.15-slim
+
+RUN apt-get update -y && \
+    apt-get install -y \
+        libpq5 && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir /usr/src/app
 
 COPY --from=base /opt/venv /opt/venv
 

@@ -155,8 +155,10 @@ cython_debug/
 .idea/
 .vscode/
 
-data/*.csv
-data/*.pickle
+*.csv
+*.pickle
+*.txt
+*.pkl
 
 catboost_info/
 

@@ -1,27 +1,55 @@
 import dash_bootstrap_components as dbc
-from dash import dcc, html
+from dash import Dash, dcc, html
 from IdHolder import IdHolder
+
+
+def metrics_card(title, id):
+    return dbc.Card(
+        dbc.CardBody(
+            children=[
+                html.H5(f'{title}', className='card-title'),
+                dbc.Spinner(
+                    html.P('0%', className='card-text', id=id),
+                ),
+            ],
+        ),
+    )
+
+
+def graph_card(title, id, config={}):
+    return dbc.Card(
+        dbc.CardBody(
+            [
+                html.H4(f'{title}', className='card-title'),
+                dbc.Spinner(
+                    dcc.Graph(
+                        id=id,
+                        config=config,
+                    ),
+                ),
+            ],
+        ),
+    )
+
 
 layout = html.Div(
     children=[
+        # TODO: hide buttons
+        # TODO: add Interval? or hide only internal updates
+        dbc.Button(id=IdHolder.update_metrics.name),
+        dbc.Button(id=IdHolder.update_preds.name),
+        dbc.Button(id=IdHolder.update.name),
         html.Div(
             children=[
                 html.Div(
                     children=[
                         html.H1(children='Train Results for model'),
-                        dbc.DropdownMenu(
-                            children=[
-                                dbc.DropdownMenuItem('Model 1'),
-                                dbc.DropdownMenuItem('Model 2'),
-                                dbc.DropdownMenuItem('Model 3'),
-                            ],
-                            size='lg',
+                        dcc.Dropdown(
                             id=IdHolder.model_dropdown.name,
-                            label='Model 1',
-                            toggle_style={
-                                'background': 'white',
-                                'color': 'black',
-                            },
+                            options=[],
+                            placeholder='Select a model',
+                            clearable=False,
+                            searchable=False,
                         ),
                     ],
                     className='grid-column card',
@@ -30,152 +58,51 @@ layout = html.Div(
                     children=[
                         html.Div(
                             children=[
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        children=[
-                                            html.H5(
-                                                'Precision',
-                                                className='card-title',
-                                            ),
-                                            html.P('0%', className='card-text'),
-                                        ],
-                                    ),
-                                ),
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        children=[
-                                            html.H5('TNR', className='card-title'),
-                                            html.P('0%', className='card-text'),
-                                        ],
-                                    ),
-                                ),
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        children=[
-                                            html.H5('FPR', className='card-title'),
-                                            html.P('0%', className='card-text'),
-                                        ],
-                                    ),
-                                ),
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        children=[
-                                            html.H5('Cohen Kappa', className='card-title'),
-                                            html.P('0%', className='card-text'),
-                                        ],
-                                    ),
-                                ),
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        children=[
-                                            html.H5('FNR', className='card-title'),
-                                            html.P('0%', className='card-text'),
-                                        ],
-                                    ),
-                                ),
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        children=[
-                                            html.H5('TPR', className='card-title'),
-                                            html.P('0%', className='card-text'),
-                                        ],
-                                    ),
-                                ),
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        children=[
-                                            html.H5('ROC AUC', className='card-title'),
-                                            html.P('0%', className='card-text'),
-                                        ],
-                                    ),
-                                ),
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        children=[
-                                            html.H5('F1', className='card-title'),
-                                            html.P('0%', className='card-text'),
-                                        ],
-                                    ),
-                                ),
-                                dbc.Card(
-                                    dbc.CardBody(
-                                        children=[
-                                            html.H5(
-                                                'Avg. Precision',
-                                                className='card-title',
-                                            ),
-                                            html.P('0%', className='card-text'),
-                                        ],
-                                    ),
+                                metrics_card('TNR', IdHolder.tnr.name),
+                                metrics_card('FPR', IdHolder.fpr.name),
+                                metrics_card('FDR', IdHolder.fdr.name),
+                                metrics_card('FNR', IdHolder.fnr.name),
+                                metrics_card('TPR', IdHolder.tpr.name),
+                                metrics_card('NPV', IdHolder.npv.name),
+                                metrics_card('ROC AUC', IdHolder.roc_auc.name),
+                                metrics_card('F1', IdHolder.f1_beta.name),
+                                metrics_card(
+                                    'Precision',
+                                    IdHolder.precision.name,
                                 ),
                             ],
                             className='metrics-grid',
                         ),
-                        dbc.Card(
-                            dbc.CardBody(
-                                children=[
-                                    html.H4(
-                                        'Models performance',
-                                        className='card-title',
-                                    ),
-                                    dcc.Graph(
-                                        id=IdHolder.models_performance_graph.name,
-                                    ),
-                                ],
-                            ),
+                        # absolute and relative graph checkbox
+                        graph_card(
+                            'Models performance',
+                            IdHolder.models_performance_graph.name,
                         ),
                     ],
                     className='grid-column',
                 ),
                 html.Div(
                     children=[
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.H4('ROC AUC Curve', className='card-title'),
-                                    dcc.Graph(
-                                        id=IdHolder.roc_auc_graph.name,
-                                    ),
-                                ],
-                            ),
+                        graph_card(
+                            'Prediction probability histogram',
+                            IdHolder.predict_proba_graph.name,
                         ),
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.H4('TPR and FPR over thresholds', className='card-title'),
-                                    dcc.Graph(
-                                        id=IdHolder.tpr_fpr_graph.name,
-                                    ),
-                                ],
-                            ),
+                        graph_card(
+                            'TPR and FPR over thresholds',
+                            IdHolder.tpr_fpr_graph.name,
                         ),
                     ],
                     className='grid-column',
                 ),
                 html.Div(
                     children=[
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.H4('Confusion Matrix', className='card-title'),
-                                    dcc.Graph(
-                                        id=IdHolder.confusion_matrix_graph.name,
-                                    ),
-                                ],
-                            ),
+                        graph_card(
+                            'ROC AUC Curve',
+                            IdHolder.roc_auc_graph.name,
                         ),
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.H4(
-                                        'Correlation Matrix',
-                                        className='card-title',
-                                    ),
-                                    dcc.Graph(
-                                        id=IdHolder.correlation_matrix_graph.name,
-                                    ),
-                                ],
-                            ),
+                        graph_card(
+                            'Precision-Recall Curve',
+                            IdHolder.precision_recall_graph.name,
                         ),
                     ],
                     className='grid-column',
@@ -186,24 +113,49 @@ layout = html.Div(
                             dbc.CardBody(
                                 [
                                     html.H4(
-                                        'Feature Importance',
+                                        children=[
+                                            html.Span(
+                                                'Confusion Matrix',
+                                                id=IdHolder.confusion_title.name,
+                                            ),
+                                            dbc.Checklist(
+                                                options=[
+                                                    {'value': 1},
+                                                ],
+                                                value=[1],
+                                                id=IdHolder.confusion_switch.name,
+                                                switch=True,
+                                            ),
+                                        ],
                                         className='card-title',
                                     ),
-                                    dcc.Graph(
-                                        id=IdHolder.feature_importance_graph.name,
+                                    dbc.Spinner(
+                                        dcc.Graph(
+                                            id=IdHolder.confusion_matrix_graph.name,
+                                            config={'displayModeBar': False},
+                                        ),
                                     ),
                                 ],
                             ),
                         ),
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.H4('Partial Dependence', className='card-title'),
-                                    dcc.Graph(
-                                        id=IdHolder.partial_dependence_graph.name,
-                                    ),
-                                ],
-                            ),
+                        graph_card(
+                            'Correlation Matrix',
+                            IdHolder.correlation_matrix_graph.name,
+                            config={'displayModeBar': False},
+                        ),
+                    ],
+                    className='grid-column',
+                ),
+                html.Div(
+                    children=[
+                        graph_card(
+                            'Feature Importance',
+                            IdHolder.feature_importance_graph.name,
+                            config={'displayModeBar': False},
+                        ),
+                        graph_card(
+                            'Partial Dependence',
+                            IdHolder.partial_dependence_graph.name,
                         ),
                     ],
                     className='grid-column',
@@ -214,3 +166,7 @@ layout = html.Div(
     ],
     className='main-container',
 )
+
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+app.layout = layout

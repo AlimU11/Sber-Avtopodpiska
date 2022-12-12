@@ -1,9 +1,9 @@
 from pydantic import BaseSettings, Field
 
 
-class Settings(BaseSettings):
+class Config(BaseSettings):
     db_url: str = Field(..., env='DATABASE_URL')
     hostname: str = Field(..., env='HOSTNAME')
 
 
-settings = Settings()
+config = Config()

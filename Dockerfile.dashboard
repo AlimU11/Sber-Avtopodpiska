@@ -1,4 +1,4 @@
-FROM alimu/alpine-pandas-postgres:latest
+FROM alimu/base-python:latest
 
 RUN pip install --no-cache-dir \
         dash \

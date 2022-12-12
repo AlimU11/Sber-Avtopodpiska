@@ -1,7 +1,6 @@
-FROM alimu/alpine-pandas-postgres:latest
+FROM alimu/ml:latest
 
 RUN pip install --no-cache-dir \
         fastapi \
         requests \
-        pydantic \
         "uvicorn[standard]"

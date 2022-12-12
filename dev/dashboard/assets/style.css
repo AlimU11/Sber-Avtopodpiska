@@ -3,13 +3,21 @@
 /* BASE */
 
 :root {
-    --black: #222A2A;
+    --background: #121212;
+    --surface: #212121;
+    --card: #303030;
+    --white: rgb(242, 242, 242);
 }
 
 body {
     margin: 0;
     font-family: 'Inter', 'Roboto', sans-serif;
-    color: var(--black);
+    color: var(--white);
+    background-color: var(--background);
+}
+
+.card {
+    background-color: var(--card);
 }
 
 body::-webkit-scrollbar-track {
@@ -18,19 +26,20 @@ body::-webkit-scrollbar-track {
 
 body::-webkit-scrollbar {
     width: 7px;
-    background-color: #FFF;
+    background-color: var(--surface);
 }
 
 body::-webkit-scrollbar-thumb {
     border-radius: 15px;
-    background-color: var(--black);
+    background-color: #4f4f4f;
 }
 
 .main-container {
     margin: 1rem;
     border-radius: 5px;
-    box-shadow: 0 0 5px 0 rgb(0 0 0 / 20%);
+    /* box-shadow: 0 0 5px 0 rgb(242 242 242 / 20%); */
     padding: 2.5rem;
+    background-color: var(--surface);
 }
 
 .main-grid {
@@ -43,8 +52,12 @@ body::-webkit-scrollbar-thumb {
 .grid-column > .card {
     margin: 0.5rem;
     border-radius: 5px;
-    box-shadow: 0 0 5px 0 rgb(0 0 0 / 10%);
+    /* box-shadow: 0 0 5px 0 rgb(242 242 242 / 10%); */
     transition: cubic-bezier(0.785, 0.135, 0.15, 0.86) 0.3s;
+}
+
+.card-body {
+    padding: 1.5rem;
 }
 
 /* METRICS GRID */
@@ -60,7 +73,7 @@ body::-webkit-scrollbar-thumb {
 }
 
 .metrics-grid > .card {
-    padding: 1rem;
+    padding: 0;
     width: 100%;
     margin: 0;
 }
@@ -76,12 +89,12 @@ body::-webkit-scrollbar-thumb {
     position: absolute !important;
     font-size: 1.0rem;
     top: 1rem;
-    left: 0.5rem;
+    left: 1rem;
     right: 0.5rem;
     font-weight: 700;
 }
 
-.metrics-grid > .card > .card-body > p {
+.metrics-grid > .card > .card-body > div > p {
     text-align: center;
     font-size: 2.5rem;
     font-weight: 600;
@@ -94,26 +107,22 @@ body::-webkit-scrollbar-thumb {
 }
 
 .grid-column:nth-child(1) {
+    display: grid;
     grid-template-columns: min-content 1fr;
     position: sticky;
     top: 1rem;
     z-index: 1;
-    box-shadow: 0 0 5px 0 rgb(0 0 0 / 20%);
+    box-shadow: 0 0 5px 0 rgb(0 0 0 / 50%);
 }
 
 .grid-column:nth-child(2) {
     grid-template-columns: min-content 1fr;
 }
 
-.grid-column:nth-child(3) {
-    grid-template-columns: 1fr 1fr;
-}
-
-.grid-column:nth-child(4) {
-    grid-template-columns: 1fr 1fr;
-}
-
-.grid-column:nth-child(5) {
+.grid-column:nth-child(3),
+.grid-column:nth-child(4),
+.grid-column:nth-child(5),
+.grid-column:nth-child(6) {
     grid-template-columns: 1fr 1fr;
 }
 
@@ -132,4 +141,58 @@ h1 {
 
 #models_performance_graph {
     height: 24rem;
+}
+
+#confusion_switch {
+    font-size: 1rem;
+    margin-left: 1rem;
+}
+
+#confusion_switch > div > input {
+    cursor: pointer;
+}
+
+.plot-container.plotly {
+    display: flex;
+    justify-content: center;
+}
+
+.card-title:has(#confusion_title) {
+    display: flex;
+    align-items: flex-end;
+}
+
+.Select-value {
+    padding: 0 !important;
+}
+
+.Select-value-label > span {
+    padding: 0 1rem;
+}
+
+.VirtualizedSelectOption {
+    background-color: #4f4f4f;
+    padding: 0;
+    margin: 0;
+}
+
+div:not(.Select-value-label) > .model-select {
+    background-color: #4f4f4f;
+    padding: 0.25rem 1rem;
+    margin: 0;
+}
+
+div:not(.Select-value-label) > .model-select:hover {
+    background-color: #5f5f5f !important;
+}
+
+.Select-control {
+    border-color: #4f4f4f;
+}
+
+#model_dropdown {
+    width: 15rem;
+    margin-left: 1rem;
+    margin-top: 0.4rem;
+    font-size: 1.4rem;
 }

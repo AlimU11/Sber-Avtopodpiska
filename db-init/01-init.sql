@@ -52,15 +52,15 @@ CREATE TABLE IF NOT EXISTS scores.models (
 );
 
 CREATE TABLE IF NOT EXISTS scores.metrics (
-    model_id INTEGER,
+    model_id INTEGER UNIQUE,
+    tn FLOAT,
     fp FLOAT,
     fn FLOAT,
     tp FLOAT,
-    tn FLOAT,
-    avg_precision FLOAT,
     roc_auc FLOAT,
-    f1 FLOAT,
-    cohen_kappa FLOAT,
+    f1_beta FLOAT,
+    feature_importance BYTEA,
+    corr BYTEA,
     PRIMARY KEY (model_id),
     CONSTRAINT fk_model_id
         FOREIGN KEY (model_id)
