@@ -1,0 +1,42 @@
+{
+    "model": {
+        "XGBoost": {
+            "use_label_encoder": false,
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "base_score": 0.5,
+            "booster": "dart",
+            "colsample_bylevel": 1,
+            "colsample_bynode": 1,
+            "colsample_bytree": 0.9780205771425828,
+            "gamma": 1.992242643180572e-06,
+            "gpu_id": 0,
+            "interaction_constraints": "",
+            "learning_rate": 0.08866227255742934,
+            "max_delta_step": 0,
+            "max_depth": 5,
+            "min_child_weight": 7,
+            "monotone_constraints": "()",
+            "n_jobs": 16,
+            "num_parallel_tree": 1,
+            "predictor": "auto",
+            "random_state": 0,
+            "reg_alpha": 4.24020108e-08,
+            "reg_lambda": 1.01165698e-08,
+            "scale_pos_weight": 1,
+            "subsample": 0.4452158621102488,
+            "tree_method": "hist",
+            "validate_parameters": 1,
+            "verbosity": null,
+            "lambda": 1.0116569547322277e-08,
+            "alpha": 4.240200767406992e-08,
+            "eta": 4.402487239387443e-08,
+            "grow_policy": "lossguide",
+            "sample_type": "weighted",
+            "normalize_type": "tree",
+            "rate_drop": 0.0009498420721666698,
+            "skip_drop": 0.0017300139587790963
+        }
+    },
+    "resampler": "LVQ_SMOTE"
+}

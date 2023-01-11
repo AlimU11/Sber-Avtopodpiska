@@ -1,6 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS sber_avtopodpiska;
 CREATE SCHEMA IF NOT EXISTS scores;
-CREATE SCHEMA IF NOT EXISTS ml_ops;
 
 CREATE TABLE IF NOT EXISTS sber_avtopodpiska.raw_sessions (
     id SERIAL,
@@ -28,21 +27,8 @@ CREATE TABLE IF NOT EXISTS sber_avtopodpiska.raw_sessions (
 CREATE TABLE IF NOT EXISTS sber_avtopodpiska.raw_hits (
     id SERIAL,
     session_id VARCHAR,
-    hit_date DATE,
-    hit_time FLOAT,
-    hit_number INTEGER,
-    hit_type VARCHAR,
-    hit_referer VARCHAR,
-    hit_page_path VARCHAR,
-    event_category VARCHAR,
     event_action VARCHAR,
-    event_label VARCHAR,
-    event_value FLOAT,
     PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS sber_avtopodpiska.attendance_book (
-
 );
 
 CREATE TABLE IF NOT EXISTS scores.models (
@@ -61,6 +47,7 @@ CREATE TABLE IF NOT EXISTS scores.metrics (
     f1_beta FLOAT,
     feature_importance BYTEA,
     corr BYTEA,
+    evals_result BYTEA,
     PRIMARY KEY (model_id),
     CONSTRAINT fk_model_id
         FOREIGN KEY (model_id)
@@ -72,17 +59,6 @@ CREATE TABLE IF NOT EXISTS scores.train_pred (
     model_id INTEGER,
     fact INTEGER,
     pred_proba FLOAT,
-    PRIMARY KEY (pred_id, model_id),
-    CONSTRAINT fk_model_id
-        FOREIGN KEY (model_id)
-            REFERENCES scores.models (model_id)
-);
-
-CREATE TABLE IF NOT EXISTS ml_ops.trg_endpnt_perf (
-    pred_id SERIAL,
-    model_id INTEGER,
-    pred_proba FLOAT,
-    dt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (pred_id, model_id),
     CONSTRAINT fk_model_id
         FOREIGN KEY (model_id)

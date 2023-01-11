@@ -400,9 +400,59 @@ def plot_feature_importance():
     return fig
 
 
-# TODO: add
-def plot_partial_dependence():
-    return go.Figure()
+def plot_loss():
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=[i for i in range(len(app_data.train_loss))],
+            y=app_data.train_loss,
+            name='Train loss',
+            mode='lines',
+            line=dict(color='#636EFA'),
+        ),
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=[i for i in range(len(app_data.val_loss))],
+            y=app_data.val_loss,
+            name='Validation loss',
+            mode='lines',
+            line=dict(color='#EF553B'),
+        ),
+    )
+
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=50, b=75),
+        xaxis=dict(
+            title='<b>Iteration</b>',
+            constrain='domain',
+            showline=True,
+            linewidth=1,
+            linecolor='rgb(242, 242, 242)',
+        ),
+        yaxis=dict(
+            title='<b>Loss</b>',
+            showline=True,
+            linewidth=1,
+            linecolor='rgb(242, 242, 242)',
+        ),
+        legend=dict(
+            orientation='h',
+            yanchor='bottom',
+            y=1.02,
+            xanchor='left',
+            x=0,
+        ),
+        height=600,
+        paper_bgcolor='rgb(48, 48, 48)',
+        plot_bgcolor='rgb(48, 48, 48)',
+        hovermode='x unified',
+        font=dict(color='rgb(242, 242, 242)', family='Inter'),
+    )
+
+    return fig
 
 
 def _heatmap(cm, font_size):
@@ -427,7 +477,8 @@ def _heatmap(cm, font_size):
     return fig
 
 
-def _sankey(cm):  # TODO: refactor
+# TODO: refactor
+def _sankey(cm):
     df = (
         pd.DataFrame(
             data=cm,

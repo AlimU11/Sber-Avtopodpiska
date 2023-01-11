@@ -1,17 +1,15 @@
 # import smote_variants as sv
 import json
-import pickle
 
 import dill
 import pandas as pd
-import sqlalchemy
 from category_encoders.cat_boost import CatBoostEncoder
-from Config import config
 from feature_engine.encoding import OneHotEncoder, RareLabelEncoder
 from feature_engine.imputation import MeanMedianImputer
 from feature_engine.outliers import Winsorizer
 from feature_engine.wrappers import SklearnTransformerWrapper
 from ModelWrapper import ModelWrapper
+from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import FunctionTransformer, Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -21,7 +19,7 @@ models_dict = {
     'XGBoost': XGBClassifier,
 }
 
-cities = pd.read_csv('ru_cities.csv')  # NOTE: ../../data/ru_cities.csv for local
+cities = pd.read_csv('../data/ru_cities.csv')
 
 preprocess = Pipeline(
     steps=[
@@ -84,13 +82,70 @@ preprocess = Pipeline(
 )
 
 
-def read_data(query, engine, chunksize):
-    dfl = []
+def read_data():
 
-    for chunk in pd.read_sql(query, con=engine, chunksize=chunksize):
-        dfl.append(chunk)
+    hits = pd.read_csv('../data/ga_hits.csv', low_memory=False)
+    sessions = pd.read_csv('../data/ga_sessions.csv', low_memory=False)
 
-    return pd.concat(dfl, ignore_index=True)
+    events_list = [
+        'sub_car_claim_click',
+        'sub_car_claim_submit_click',
+        'sub_open_dialog_click',
+        'sub_custom_question_submit_click',
+        'sub_call_number_click',
+        'sub_callback_submit_click',
+        'sub_submit_success',
+        'sub_car_request_submit_click',
+    ]
+
+    media_advertising = [
+        'QxAxdyPLuQMEcrdZWdWb',
+        'MvfHsxITijuriZxsqZqt',
+        'ISrKoXQCxqqYvAZICvjs',
+        'IZEXUFLARCUMynmHNBGo',
+        'PlbkrSYoHuZBWfYjYnfw',
+        'gVRrcxiDQubJiljoTbGm',
+    ]
+
+    organic_traffic = ['organic', 'referral', '(none)']
+
+    return pd.merge(
+        hits.assign(
+            target_action=lambda _df: _df.event_action.apply(
+                lambda x: 1 if x in events_list else 0,
+            ),
+        )
+        .groupby('session_id', as_index=False)
+        .agg({'target_action': 'max'})[['session_id', 'target_action']],
+        sessions.assign(
+            utm_source=lambda _df: _df.utm_source.apply(
+                lambda x: True if x in media_advertising else False,
+            ),
+            utm_medium=lambda _df: _df.utm_medium.apply(
+                lambda x: True if x in organic_traffic else False,
+            ),
+        )[
+            [
+                'session_id',
+                'utm_source',
+                'utm_medium',
+                'utm_campaign',
+                'utm_adcontent',
+                'utm_keyword',
+                'device_category',
+                'device_os',
+                'device_brand',
+                'device_model',
+                'device_screen_resolution',
+                'device_browser',
+                'geo_country',
+                'geo_city',
+            ]
+        ],
+        how='inner',
+        left_on='session_id',
+        right_on='session_id',
+    ).drop('session_id', axis=1)
 
 
 def pandas_preprocess(df, cities):
@@ -154,41 +209,26 @@ def pandas_preprocess(df, cities):
 
 
 def get_params(args, X_train, y_train):
-    raise NotImplementedError('Function `get_params` is not implemented. Provide path to config instead.')
-
-
-def train(args, logger):
-    engine = sqlalchemy.create_engine(
-        f'postgresql://{config.user}:{config.password}@{config.host}:{config.port}/{config.db}',
+    raise NotImplementedError(
+        'Function `get_params` is not implemented. Provide path to config instead.',
     )
 
-    with open(config.query_path, 'r') as f:
-        query = f.read()
+
+def train(logger):
 
     logger.info('Reading data...')
 
-    df = read_data(
-        query.format(
-            config.raw_hits_table,
-            config.raw_sessions_table,
-        ),
-        engine,
-        config.chunksize,
-    )
+    df = read_data()
 
     X, y = df.drop('target_action', axis=1), df.target_action
     X_train, X_test, y_train, y_test = train_test_split(X, y)
     X_train, X_val, y_train, y_val = train_test_split(X_train, y_train)
 
-    params = None
-    if args.config:
-        with open(args.config, 'r') as f:
-            params_dict = json.load(f)
-            args.resampler = params_dict['resampler']
-            args.model = list(params_dict['model'].keys())[0]
-            params = params_dict['model'][args.model]
-    else:
-        params = get_params(args, X_train, y_train)
+    with open('model_config.json', 'r') as f:
+        params_dict = json.load(f)
+        params_dict['resampler']
+        model = list(params_dict['model'].keys())[0]
+        params = params_dict['model'][model]
 
     pipeline = Pipeline(
         steps=[
@@ -209,7 +249,7 @@ def train(args, logger):
     model = ModelWrapper(
         # getattr(sv, args.resampler)(n_jobs=16),
         None,
-        models_dict[args.model](**params),
+        models_dict[model](**params),
     )
 
     X_train_transformed = pipeline.fit_transform(X=X_train, y=y_train)
@@ -219,28 +259,20 @@ def train(args, logger):
 
     logger.info('Fitting model...')
 
-    pipeline.fit(X=X_train, y=y_train, model__eval_set=[(X_train_transformed, y_train), (X_val, y_val)])
-
-    logger.info('Predicting on test set and saving results...')
-
-    pred_proba = pipeline.predict_proba(X_test)
-    evals_result = pickle.dumps(pipeline[-1].evals_result_)
-
-    feature_importance = pickle.dumps(
-        pd.DataFrame.from_dict(
-            {
-                k: v
-                for k, v in zip(
-                    pipeline[-2].feature_names_in_,
-                    pipeline[-1].feature_importances_,
-                )
-            },
-            orient='index',
-            columns=['importance'],
-        ),
+    pipeline.fit(
+        X=X_train,
+        y=y_train,
+        model__eval_set=[
+            (X_train_transformed, y_train),
+            (X_val, y_val),
+        ],
     )
 
-    corr = pickle.dumps(pipeline[:-1].transform(X_test).corr())
-    pipeline = dill.dumps(pipeline)
+    logger.info('Predicting on test...')
 
-    return pipeline, feature_importance, corr, evals_result, y_test, pred_proba
+    pred_proba = pipeline.predict_proba(X_test)
+
+    logger.info('ROC AUC: {}'.format(roc_auc_score(y_test, pred_proba[:, 1])))
+
+    with open('model.pkl', 'wb') as f:
+        dill.dump(pipeline, f)

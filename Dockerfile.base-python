@@ -12,12 +12,12 @@ ENV PATH="/opt/venv/bin:${PATH}"
 
 RUN pip install --no-cache-dir --upgrade \
         pip \
-        numpy \
-        pandas \
-        psycopg2 \
-        pydantic \
+        numpy==1.20.3 \
+        pandas==1.3.4 \
+        psycopg2==2.9.5 \
+        pydantic==1.8.2 \
         sqlalchemy \
-        scikit-learn \
+        scikit-learn==1.1.3 \
         loguru
 
 FROM python:3.9.15-slim

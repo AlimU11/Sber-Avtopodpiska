@@ -10,8 +10,8 @@ from utils import (
     plot_confusion_matrix,
     plot_corr_matrix,
     plot_feature_importance,
+    plot_loss,
     plot_models_performance,
-    plot_partial_dependence,
     plot_precision_recall,
     plot_predict_proba,
     plot_roc_auc,
@@ -181,16 +181,11 @@ def update_feature_importance(_):
     return plot_feature_importance()
 
 
-# TODO: add data
 @app.callback(
-    Output(IdHolder.partial_dependence_graph.name, 'figure'),
+    Output(IdHolder.loss_graph.name, 'figure'),
     Input(IdHolder.model_dropdown.name, 'value'),
-    State(IdHolder.partial_dependence_graph.name, 'figure'),
+    State(IdHolder.loss_graph.name, 'figure'),
     prevent_initial_call=True,
 )
-def update_partial_dependence(_, partial_dependence_graph):
-    return (
-        plot_partial_dependence()
-        if ctx.triggered_id == IdHolder.model_dropdown.name or not ctx.triggered_id
-        else partial_dependence_graph
-    )
+def update_loss(_, loss_graph):
+    return plot_loss() if ctx.triggered_id == IdHolder.model_dropdown.name or not ctx.triggered_id else loss_graph

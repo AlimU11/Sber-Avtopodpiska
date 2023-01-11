@@ -30,4 +30,4 @@ class IdHolder(Enum):
     confusion_matrix_graph = auto()
     correlation_matrix_graph = auto()
     feature_importance_graph = auto()
-    partial_dependence_graph = auto()
+    loss_graph = auto()

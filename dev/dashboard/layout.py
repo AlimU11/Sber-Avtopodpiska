@@ -34,11 +34,14 @@ def graph_card(title, id, config={}):
 
 layout = html.Div(
     children=[
-        # TODO: hide buttons
-        # TODO: add Interval? or hide only internal updates
-        dbc.Button(id=IdHolder.update_metrics.name),
-        dbc.Button(id=IdHolder.update_preds.name),
-        dbc.Button(id=IdHolder.update.name),
+        html.Div(
+            [
+                dbc.Button(id=IdHolder.update_metrics.name),
+                dbc.Button(id=IdHolder.update_preds.name),
+                dbc.Button(id=IdHolder.update.name),
+            ],
+            style='display: none',
+        ),
         html.Div(
             children=[
                 html.Div(
@@ -154,8 +157,8 @@ layout = html.Div(
                             config={'displayModeBar': False},
                         ),
                         graph_card(
-                            'Partial Dependence',
-                            IdHolder.partial_dependence_graph.name,
+                            'Loss',
+                            IdHolder.loss_graph.name,
                         ),
                     ],
                     className='grid-column',

@@ -1,11 +1,5 @@
 import numpy as np
-from sklearn.metrics import (
-    confusion_matrix,
-    fbeta_score,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-)
+from sklearn.metrics import confusion_matrix, fbeta_score, roc_auc_score
 
 
 def calculate_metrics(y_test, y_pred_proba):

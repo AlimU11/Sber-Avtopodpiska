@@ -36,8 +36,8 @@ def __insert_models(pipeline):
 
 def __insert_metrics(model_id, metrics):
     engine.execute(
-        """INSERT INTO %s (model_id, tn, fp, fn, tp, roc_auc, f1_beta, feature_importance, corr)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+        """INSERT INTO %s (model_id, tn, fp, fn, tp, roc_auc, f1_beta, feature_importance, corr, evals_result)
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
         AsIs(config.metrics_table),
         model_id,
         *metrics,

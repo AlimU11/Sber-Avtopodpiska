@@ -2,20 +2,13 @@ from typing import Optional
 
 import dill
 import pandas as pd
-import sqlalchemy
-from Config import config
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 app = FastAPI()
 
-engine = sqlalchemy.create_engine(config.db_url)
-
-model = engine.execute(
-    'select model from scores.models order by dt desc limit 1',
-).scalar()
-
-model = dill.loads(model)
+with open('model.pkl', 'rb') as f:
+    model = dill.load(f)
 
 
 class Item(BaseModel):
@@ -63,5 +56,4 @@ async def predict(items: Items):
 def _status():
     return {
         'status': 'ok',
-        'from': config.hostname,
     }
