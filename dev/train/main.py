@@ -43,6 +43,9 @@ def main():
     args = parse()
 
     logger.info('Training with args: {}', args)
+    logger.info(
+        'Resampler from both config and arguments is ignored. To use resampler, manually change the code in train.py (lines 210-211)',
+    )
 
     pipeline, feature_importance, corr, evals_result, y_test, pred_proba = train(args, logger)
 

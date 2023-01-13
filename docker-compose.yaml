@@ -3,7 +3,7 @@ version: '3'
 
 services:
 
-  # DASHBOARDS PROFILE
+  # DASHBOARDS
   dev-dashboard:
     command:
       - /wait-for-it.sh
@@ -34,14 +34,12 @@ services:
       - db
     ports:
       - ${DEV_DASHBOARD_PORT}:${DEV_DASHBOARD_PORT}
-    profiles:
-      - ${DASHBOARDS_PROFILE}
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh:ro
       - ./dev/dashboard:/usr/src/app:ro
     working_dir: /usr/src/app
 
-  # DB PROFILE
+  # DB
   db:
     build:
       args:
@@ -64,11 +62,9 @@ services:
     image: ${MAINTAINER}/db
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
-    profiles:
-      - ${DB_PROFILE}
     restart: on-failure
 
-  # API PROFILE
+  # API
   endpoint:
     command:
       - /wait-for-it.sh
@@ -102,8 +98,6 @@ services:
     links:
       - db
       - prometheus
-    profiles:
-      - ${API_PROFILE}
     restart: on-failure
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh:ro
@@ -132,12 +126,10 @@ services:
     ports:
       - 80:80
       - ${TRAEFIK_PORT}:${TRAEFIK_PORT}
-    profiles:
-      - ${API_PROFILE}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
-  # ML PROFILE
+  # ML
   dev-train:
     command:
       - python
@@ -161,14 +153,12 @@ services:
     image: alimu/ml:latest
     links:
       - db
-    profiles:
-      - ${ML_PROFILE}
     volumes:
       - ./dev/train:/usr/src/app
       - ./data/ru_cities.csv:/usr/src/app/ru_cities.csv:ro
     working_dir: /usr/src/app
 
-  # MONITORING PROFILE
+  # MONITORING
   adminer:
     container_name: adminer
     depends_on:
@@ -182,8 +172,6 @@ services:
     image: adminer:latest
     ports:
       - ${ADMINER_PORT}:8080
-    profiles:
-      - ${MONITORING_PROFILE}
     restart: on-failure
 
   grafana:
@@ -195,8 +183,6 @@ services:
     image: grafana/grafana
     ports:
       - ${GRAFANA_PORT}:${GRAFANA_PORT}
-    profiles:
-      - ${MONITORING_PROFILE}
     volumes:
       - ./data/grafana-storage:/var/lib/grafana
 
@@ -216,8 +202,6 @@ services:
       - prometheus
     ports:
       - ${POSTGRES_EXPORTER_PORT}:${POSTGRES_EXPORTER_PORT}
-    profiles:
-      - ${MONITORING_PROFILE}
 
   prometheus:
     container_name: prometheus
@@ -228,8 +212,6 @@ services:
       - traefik.port=9090
     ports:
       - ${PROMETHEUS_PORT}:${PROMETHEUS_PORT}
-    profiles:
-      - ${MONITORING_PROFILE}
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml:ro
 

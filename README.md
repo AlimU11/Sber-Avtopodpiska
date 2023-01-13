@@ -64,11 +64,26 @@ Sber-Avtopodpiska
 
 ## Run
 
+Docker setup requires approximately 15 GB RAM to run all services simultaneously or 5.8 GM RAM to run db + dev-train (most memory consumptive pair, the value highly depends on training settings - model, model parameters and resampler)
+
 Run the following command in the root directory of the project:
 
 ```bash
-docker-compose up
+docker-compose up db dev-train
 ```
+
+at least once to train the model and save it to the database. Additionally you can include the following services in the command:
+
+- traefik
+- adminer
+- grafana
+- postgres-exporter
+- prometheus
+
+After that you up the following services:
+
+- dev-dashboard
+- endpoint
 
 ### Run locally
 
@@ -94,7 +109,10 @@ you can run the API locally.
 
 1. ML - service for training model, making predictions on test data and saving model and metrics to database.
 2. Dev Dashboard - service for visualizing train results. Available at [http://dev-dashboard.localhost:8050](http://dev-dashboard.localhost:8050).
+
 ![assets/dashboard](assets/dashboard.png)
+<i style="display:block; text-align: center;">(Dashboard example)</i>
+
 3. Endpoint - service for making predictions on new data. Available at [http://api.localhost:80](http://api.localhost:80).
 4. Prometheus - service for collecting metrics from services. Available at [http://prometheus.localhost:9090](http://prometheus.localhost:9090).
 5. Grafana - service for visualizing metrics from database and API. Available at [http://grafana.localhost:3000](http://grafana.localhost:3000).
