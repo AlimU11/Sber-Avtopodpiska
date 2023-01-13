@@ -158,6 +158,7 @@ cython_debug/
 *.csv
 *.pickle
 *.txt
+!requirements.txt
 *.pkl
 
 catboost_info/
