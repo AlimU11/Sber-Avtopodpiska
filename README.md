@@ -1,4 +1,8 @@
+[![wakatime](https://wakatime.com/badge/user/ec8c97a0-e0e3-4763-a6b4-374bde6dcd04/project/aafb6a03-63ca-4a74-a569-ba002e6c1af1.svg?style=for-the-badge)](https://wakatime.com/badge/user/ec8c97a0-e0e3-4763-a6b4-374bde6dcd04/project/aafb6a03-63ca-4a74-a569-ba002e6c1af1)
+
 # Sber Avtopodpiska
+
+Binary classification of Sber Avtopodpiska website visitors' interactions for predefined target actions. This project contains a full pipeline of data preparation and model training, as well as model deployment as an API endpoint. In addition, deploy other services such as a database to store initial data and training results (not included in the repository), scalable API endpoint, the dashboard for visualizing training results and services for collecting and visualizing metrics for database and endpoint performance.
 
 ## File Structure
 
@@ -39,7 +43,6 @@ Sber-Avtopodpiska
 │     ├─ query.sql
 │     └─ train.py
 ├─ docker-compose.yaml
-├─ Dockerfile.alpine-pandas-postgres
 ├─ Dockerfile.api
 ├─ Dockerfile.base-python
 ├─ Dockerfile.dashboard
@@ -72,7 +75,7 @@ Run the following command in the root directory of the project:
 docker-compose up db dev-train
 ```
 
-at least once to train the model and save it to the database. Additionally you can include the following services in the command:
+at least once to train the model and save it to the database. Additionally, you can include the following services in the command:
 
 - traefik
 - adminer
@@ -93,7 +96,7 @@ Alternatively, go to the `local` directory and run the following command:
 python main.py
 ```
 
-to initiate the training process. Consider to put respective data in the `data` directory beforehand.
+to initiate the training process. Consider putting respective data (`ga_hits.csv`, `ga_sessions.csv`) under the `data` directory beforehand.
 
 Using the following command:
 
@@ -107,7 +110,7 @@ you can run the API locally.
 
 ![assets/services](assets/services.svg)
 
-1. ML - service for training model, making predictions on test data and saving model and metrics to database.
+1. ML - service for training models, making predictions on test data and saving models and metrics to a database.
 2. Dev Dashboard - service for visualizing train results. Available at [http://dev-dashboard.localhost:8050](http://dev-dashboard.localhost:8050).
 
 ![assets/dashboard](assets/dashboard.png)
@@ -118,5 +121,5 @@ you can run the API locally.
 5. Grafana - service for visualizing metrics from database and API. Available at [http://grafana.localhost:3000](http://grafana.localhost:3000).
 6. DB - service for storing data. Available at [http://db.localhost:5432](http://db.localhost:5432).
 7. Adminer - service for database management. Available at [http://adminer.localhost:8090](http://adminer.localhost:8090).
-8. Postgres-exporter - service for collecting metrics from database.
-9. Traefik - service for routing requests to services and API load balancer. Available at [http://traefik.localhost:8080](http://traefik.localhost:8080).
+8. Postgres-exporter - service for collecting metrics from a database.
+9. Traefik - service for routing requests to services and API load balancer. In addition, allows to collect the metrics from API. Available at [http://traefik.localhost:8080](http://traefik.localhost:8080).
