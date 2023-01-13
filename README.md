@@ -96,7 +96,7 @@ Alternatively, go to the `local` directory and run the following command:
 python main.py
 ```
 
-to initiate the training process. Consider to put respective data in the `data` directory beforehand.
+to initiate the training process. Consider putting respective data (`ga_hits.csv`, `ga_sessions.csv`) under the `data` directory beforehand.
 
 Using the following command:
 
