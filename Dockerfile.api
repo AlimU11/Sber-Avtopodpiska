@@ -2,5 +2,4 @@ FROM alimu/ml:latest
 
 RUN pip install --no-cache-dir \
         fastapi \
-        requests \
         "uvicorn[standard]"

@@ -1,3 +1,4 @@
+# import data from csv files to postgres
 DB_SCHEMA="sber_avtopodpiska"
 
 function import_data {
