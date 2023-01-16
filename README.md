@@ -2,7 +2,7 @@
 
 # Sber Avtopodpiska
 
-Binary classification of Sber Avtopodpiska website visitors' interactions for predefined target actions. This project contains a full pipeline of data preparation and model training, as well as model deployment as an API endpoint. In addition, deploy other services such as a database to store initial data and training results (not included in the repository), scalable API endpoint, the dashboard for visualizing training results and services for collecting and visualizing metrics for database and endpoint performance.
+Binary classification of Sber Avtopodpiska website visitors' interactions for predefined target actions. This project contains a full pipeline of data preparation and model training, as well as model deployment as an API endpoint. In addition, deploy other services such as a database to store initial data and training results (initial data is not included in the repository, but it is part of db image), scalable API endpoint, the dashboard for visualizing training results and services for collecting and visualizing metrics for database and endpoint performance.
 
 ## File Structure
 
@@ -52,8 +52,13 @@ Sber-Avtopodpiska
 │  ├─ api.py
 │  ├─ main.py
 │  ├─ ModelWrapper.py
+│  ├─ model.pkl
 │  ├─ model_config.json
 │  └─ train.py
+├─ notebooks
+│  ├─ EDA.ipynb
+│  ├─ Model Selection.ipynb
+│  └─ Preprocessing.ipynb
 ├─ prod
 │  └─ endpoint
 │     ├─ api.py
@@ -83,7 +88,7 @@ at least once to train the model and save it to the database. Additionally, you 
 - postgres-exporter
 - prometheus
 
-After that you up the following services:
+After that you can up the following services:
 
 - dev-dashboard
 - endpoint
@@ -106,6 +111,38 @@ python -m uvicorn api:app --proxy-headers --host 127.0.0.1 --port 80
 
 you can run the API locally.
 
+## API
+
+API accepts the following requests
+- `GET` 
+  - `/`, `/status` - return endpoint status. If running in container, additionally return container name
+  - `/score` - for local endpoint only. Return ROC AUC score for model.
+- `POST`
+  - `/predict` - return predictions for one or more items. Each item should contain `utm_*`, `device_*` and `geo_*` data. The accepted format is dict with `items` key, that contains array with `dict`. Each `dict` in array represents one item. Example:
+
+```json
+{   
+  "items": [
+      {
+          "utm_source": false,
+          "utm_medium": false,
+          "utm_campaign": "isYoUwVPnRHJ",
+          "utm_adcontent": "JNHcPlZPxEM",
+          "utm_keyword": null,
+          "device_category": "mobile",
+          "device_os": null,
+          "device_brand": "Nokia",
+          "device_model": null,
+          "device_screen_resolution": "412x823",
+          "device_browser": "Chrome",
+          "geo_country": "Russia",
+          "geo_city": "Stavropol"
+      }
+  ]
+}
+```
+
+
 ## Services
 
 ![assets/services](assets/services.svg)
@@ -114,7 +151,7 @@ you can run the API locally.
 2. Dev Dashboard - service for visualizing train results. Available at [http://dev-dashboard.localhost:8050](http://dev-dashboard.localhost:8050).
 
 ![assets/dashboard](assets/dashboard.png)
-<i style="display:block; text-align: center;">(Dashboard example)</i>
+<p align="center" style="font-style: italic">(Dashboard example)</p>
 
 3. Endpoint - service for making predictions on new data. Available at [http://api.localhost:80](http://api.localhost:80).
 4. Prometheus - service for collecting metrics from services. Available at [http://prometheus.localhost:9090](http://prometheus.localhost:9090).
