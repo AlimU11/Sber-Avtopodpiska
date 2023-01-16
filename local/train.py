@@ -272,7 +272,15 @@ def train(logger):
 
     pred_proba = pipeline.predict_proba(X_test)
 
-    logger.info('ROC AUC: {}'.format(roc_auc_score(y_test, pred_proba[:, 1])))
+    roc_auc = roc_auc_score(y_test, pred_proba[:, 1])
+
+    logger.info('ROC AUC: {}'.format(roc_auc))
 
     with open('model.pkl', 'wb') as f:
-        dill.dump(pipeline, f)
+        dill.dump(
+            {
+                'pipeline': pipeline,
+                'roc_auc': roc_auc,
+            },
+            f,
+        )

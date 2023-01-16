@@ -10,6 +10,9 @@ app = FastAPI()
 with open('model.pkl', 'rb') as f:
     model = dill.load(f)
 
+roc_auc = model['roc_auc']
+pipeline = model['pipeline']
+
 
 class Item(BaseModel):
     utm_source: Optional[bool]
@@ -41,12 +44,19 @@ async def status():
     return _status()
 
 
+@app.get('/score')
+async def score():
+    return {
+        'score': roc_auc,
+    }
+
+
 @app.post('/predict')
 async def predict(items: Items):
     return {
         i: int(pred)
         for i, pred in enumerate(
-            model.predict(
+            pipeline.predict(
                 pd.DataFrame([i.dict() for i in items.items]),
             ),
         )
